@@ -120,16 +120,8 @@ if st.button("🚀 토큰 발급 및 Helix 메시지 전송", use_container_widt
                     response = requests.post(api_url, headers=headers, data=json.dumps(payload))
                     
                     if response.status_code == 200:
+                        # 성공 시 심플한 메시지만 표시 ({} 등 불필요한 응답 데이터 출력 제거)
                         st.success("✅ Helix 이벤트 전송 성공! (Verkada Command에서 영상을 확인하세요)")
-                        
-                        response_data = response.json()
-                        
-                        # 서버 응답 데이터가 빈 객체 {} 인 경우 의미 설명 추가
-                        if not response_data:
-                            st.info("ℹ️ **서버 응답 `{}`의 의미**\n\nVerkada 서버가 데이터를 오류 없이 완벽하게 수신했다는 정상적인 완료 메시지입니다.")
-                        else:
-                            st.json(response_data)
-                            
                     else:
                         st.error(f"❌ 전송 실패 (상태 코드: {response.status_code})")
                         st.json(response.json())
