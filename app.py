@@ -9,7 +9,6 @@ import time
 def get_verkada_token(api_key):
     """최상위 API Key를 사용해 30분짜리 단기 토큰을 발급받습니다."""
     url = "https://api.verkada.com/token"
-    # 토큰 발급 시에는 'x-api-key' 헤더를 사용합니다.
     headers = {
         "x-api-key": api_key, 
         "accept": "application/json"
@@ -67,7 +66,6 @@ with col_data1:
 
 with col_data2:
     payment_type = st.selectbox("Payment Type", ["Credit Card", "Cash", "Mobile Pay"])
-    # 🔥 수정된 부분: Discount 필드를 Yes/No 선택 방식으로 변경
     discount = st.selectbox("Discount (적용 여부)", ["No", "Yes"])
     discount_percentage = st.number_input("Discount Percentage (정수)", min_value=0, max_value=100, value=0, step=1)
 
@@ -82,10 +80,10 @@ current_time_ms = int(time.time() * 1000)
 # Org ID를 활용하여 동적으로 엔드포인트 URL 생성
 api_url = f"https://api.verkada.com/cameras/v1/video_tagging/event?org_id={org_id}"
 
-# 페이로드 생성 (Discount 필드는 선택한 "Yes" 또는 "No" 문자열로 전송됨)
+# 페이로드 생성
 payload = {
     "attributes": {
-        "Discount": str(discount),                   # "Yes" 또는 "No"
+        "Discount": str(discount),
         "Discount Percentage": int(discount_percentage),
         "Item": str(item),
         "Number of Items": int(number_of_items),
@@ -122,8 +120,16 @@ if st.button("🚀 토큰 발급 및 Helix 메시지 전송", use_container_widt
                     response = requests.post(api_url, headers=headers, data=json.dumps(payload))
                     
                     if response.status_code == 200:
-                        st.success("✅ Helix 이벤트 전송 성공!")
-                        st.json(response.json())
+                        st.success("✅ Helix 이벤트 전송 성공! (Verkada Command에서 영상을 확인하세요)")
+                        
+                        response_data = response.json()
+                        
+                        # 서버 응답 데이터가 빈 객체 {} 인 경우 의미 설명 추가
+                        if not response_data:
+                            st.info("ℹ️ **서버 응답 `{}`의 의미**\n\nVerkada 서버가 데이터를 오류 없이 완벽하게 수신했다는 정상적인 완료 메시지입니다.")
+                        else:
+                            st.json(response_data)
+                            
                     else:
                         st.error(f"❌ 전송 실패 (상태 코드: {response.status_code})")
                         st.json(response.json())
